@@ -1,5 +1,7 @@
 const editor = document.getElementById('editor');
 const status = document.getElementById('status');
+const copyButton = document.getElementById('copyButton');
+const toast = document.getElementById('copyToast');
 let ws;
 let isConnecting = false;
 let reconnectAttempts = 0;
@@ -93,6 +95,74 @@ editor.addEventListener('input', () => {
             connectWebSocket();
         }
     }, 100);
+});
+
+// 复制功能
+function fallbackCopyTextToClipboard(text) {
+    // 创建临时文本区域
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    
+    // 设置样式使其不可见
+    textArea.style.position = 'fixed';
+    textArea.style.top = '0';
+    textArea.style.left = '0';
+    textArea.style.width = '2em';
+    textArea.style.height = '2em';
+    textArea.style.padding = '0';
+    textArea.style.border = 'none';
+    textArea.style.outline = 'none';
+    textArea.style.boxShadow = 'none';
+    textArea.style.background = 'transparent';
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        document.execCommand('copy');
+        return true;
+    } catch (err) {
+        console.error('Fallback: 复制失败', err);
+        return false;
+    } finally {
+        document.body.removeChild(textArea);
+    }
+}
+
+copyButton.addEventListener('click', async () => {
+    let copySuccess = false;
+    
+    // 首先尝试使用现代 API
+    if (navigator.clipboard && window.isSecureContext) {
+        try {
+            await navigator.clipboard.writeText(editor.value);
+            copySuccess = true;
+        } catch (err) {
+            console.error('Clipboard API 失败，尝试备用方法', err);
+        }
+    }
+    
+    // 如果现代 API 失败，使用备用方法
+    if (!copySuccess) {
+        copySuccess = fallbackCopyTextToClipboard(editor.value);
+    }
+    
+    // 添加按钮动画
+    copyButton.classList.add('clicked');
+    setTimeout(() => {
+        copyButton.classList.remove('clicked');
+    }, 300);
+    
+    // 显示提示
+    toast.textContent = copySuccess ? '已复制到剪贴板' : '复制失败，请重试';
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+        if (!copySuccess) {
+            toast.textContent = '已复制到剪贴板'; // 重置提示文本
+        }
+    }, 2000);
 });
 
 // 页面加载完成后初始化连接

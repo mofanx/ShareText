@@ -8,11 +8,18 @@
 </head>
 <body>
     <div class="container">
-        <h1>ShareText</h1>
+        <div class="header">
+            <h1>ShareText</h1>
+            <button id="copyButton" class="copy-button">
+                <span class="button-text">复制全部</span>
+                <span class="button-icon">📋</span>
+            </button>
+        </div>
         <div class="editor-container">
             <textarea id="editor" placeholder="在这里输入文本..."></textarea>
         </div>
         <div id="status"></div>
+        <div id="copyToast" class="toast">已复制到剪贴板</div>
     </div>
     <script src="script.js"></script>
 </body>
